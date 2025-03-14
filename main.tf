@@ -19,7 +19,7 @@ resource "aws_db_instance" "mysql" {
   engine               = "mysql"
   engine_version       = "8.0"
   instance_class       = "db.t4g.micro" # Elegível para o nível gratuito
-  db_name              = "fiapdb"
+  db_name              = "urban_food"
   username             = "admin"
   password             = ",rootpassword123," # Substitua
   parameter_group_name = "default.mysql8.0"
