@@ -28,5 +28,4 @@ Estes são alguns pontos nos quais se baseamos para a escolha do MySQL no projet
 
 ## Documentação do Banco de dados
 
-[MySQL - Modelagem de dados][def]
-[def]: mysql_doc.html
+[MySQL - Modelagem de dados](mysql_doc.html)
