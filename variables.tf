@@ -15,20 +15,16 @@ variable "instance_class" {
 
 variable "db_name" {
   description = "Database name"
-  default     = "urban_food"
+  default     = "urbanfood"
 }
 
 variable "db_username" {
   description = "Database username"
-  default     = "urban_food"
+  default     = "urbanfood"
 }
 
 variable "db_password" {
   description = "Database password"
+  default     = "Urbanf00dFiap"
   sensitive   = true
-}
-
-variable "allowed_cidr_blocks" {
-  description = "CIDR blocks allowed to access the database"
-  default     = ["0.0.0.0/0"] # Substitua por IPs específicos para maior segurança
 }
