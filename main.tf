@@ -17,7 +17,7 @@ terraform {
       version = "~> 5.95.0"
     }
   }
-  required_version = "~> 1.9"
+  required_version = ">= 1.2.0"
 }
 
 resource "aws_security_group" "rds_sg" {
