@@ -1,46 +1,100 @@
-name: Terraform AWS Deployment - FIAP
+name: Terraform AWS Deployment RDS MYSQL - FIAP
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Terraform Action to Perform'
+        type: choice
+        options:
+        - Terraform_apply
+        - Terraform_destroy
+
+permissions:
+    id-token: write
+    contents: read
 
 jobs:
-  terraform:
-    name: Terraform Apply
+  terraform_apply:
+    name: "Terraform Apply"
+    if: ${{ github.event.inputs.action == 'Terraform_apply' }}
     runs-on: ubuntu-latest
 
     steps:
       # Passo 1: Checkout do código
+      - uses: AutoModality/action-clean@v1
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      # Passo 2: Configurar o Terraform
+      # Passo 2: Configurar credenciais da AWS        
+      - name: Config AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: us-east-1
+          audience: sts.amazonaws.com
+          role-to-assume: arn:aws:iam::857378965163:role/github-actions
+
+      # Passo 3: Configurar o Terraform
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
         with:
-          terraform_version: 1.5.0
+          terraform_version: 1.9.8
 
-      # Passo 3: Inicializar o Terraform
+      # Passo 4: Inicializar o Terraform
       - name: Terraform Init
+        id: init
         run: terraform init
 
-      # Passo 4: Validar o código Terraform
+      # Passo 5: Validar o código Terraform
       - name: Terraform Validate
+        id: validate
         run: terraform validate
 
-      # Passo 5: Criar o plano Terraform
+      # Passo 6: Criar o plano Terraform
       - name: Terraform Plan
-        env:          
-          TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        id: plan
         run: terraform plan -out=tfplan
 
-      # Passo 6: Aplicar o plano Terraform
+      # Passo 7: Aplicar o plano Terraform
       - name: Terraform Apply
-        env:
-          TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        id: apply
         run: terraform apply -auto-approve tfplan
+
+  terraform_destroy:
+    name: "Terraform_destroy"
+    if: ${{ github.event.inputs.action == 'Terraform_destroy' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      # Passo 1: Checkout do código
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Passo 2: Configurar credenciais da AWS
+      - name: Config AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: us-east-1
+          audience: sts.amazonaws.com
+          role-to-assume: arn:aws:iam::857378965163:role/github-actions        
+
+      # Passo 3: Configurar o Terraform
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.9.8
+
+      # Passo 4: Inicializar o Terraform
+      - name: Terraform Init
+        id: init
+        run: terraform init
+
+      # Passo 5: Informa quais recursos serão removidos
+      - name: Show Destroy plan
+        run: terraform plan -destroy
+        continue-on-error: true
+
+      # Passo 6: Executa o Terraform Destroy
+      - name: Terraform Destroy
+        id: destroy
+        run: terraform destroy -auto-approve
